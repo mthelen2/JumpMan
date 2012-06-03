@@ -3,26 +3,19 @@ package jumpman.main.logic;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JPanel;
-import javax.swing.Timer;
 
 import jumpman.main.resources.GameObject;
 import jumpman.main.resources.Sprite;
 import jumpman.main.resources.GameObjects.GooBall;
-import jumpman.main.resources.GameObjects.Platform;
 
-public class Level extends JPanel implements ActionListener
+public class Level extends JPanel implements Runnable
 {	
 	private static final int length = 5000;
 	public static final int getLength(){return length;}
@@ -32,39 +25,36 @@ public class Level extends JPanel implements ActionListener
 	private static final long serialVersionUID = 4796115838201421109L;
 	
 	/**
-	 * In order to perform ghetto update
-	 */
-	private Timer timer;
-	
-	/**
 	 * List of objects in the scene
 	 */
 	private List<GameObject> objects = new ArrayList<GameObject>();
-	private List<Platform> platforms = new LinkedList<Platform>();
-	
-	private final static List<Point> platformPositions = 
-			Arrays.asList(new Point(50,50), new Point(250, 500), new Point(600, 400), new Point(1000, 300), new Point(1500, 200), new Point(1600, 500));
 	
 	private final GooBall player;
+	public GooBall getPlayer() { return player; }
+	
+	private Thread animator;
 
     public Level() 
     {
     	//Form stuffs
-        addKeyListener(new TAdapter());
+    	addKeyListener(new TAdapter());
         setFocusable(true);
         setBackground(Color.BLACK);
         setDoubleBuffered(true);
         
-        timer = new Timer(Game.NUM_MILLISECONDS, this);
-        timer.start();
-        
         this.player = new GooBall(Sprite.GOO);
-        
-        //Game Object stuffs
-    	objects.add(this.player);
-    	
-    	for(Point p : platformPositions)	
-    		platforms.add(new Platform(p.x, p.y, Sprite.GIRDER, player));
+    }
+    
+    public void addObject(GameObject obj)
+    {
+    	objects.add(obj);
+    }
+    
+    public void addNotify() 
+    {
+        super.addNotify();
+        animator = new Thread(this);
+        animator.start();
     }
 
     public void paint(Graphics g) 
@@ -81,31 +71,65 @@ public class Level extends JPanel implements ActionListener
         
         //Draw player + everything else
         for(GameObject obj : objects)
-        	obj.Draw(g2d);
+        	obj.draw(g2d);
         
-        //Draw platforms
-        for(Platform obj : platforms)
-        	obj.Draw(g2d);
+        //Draw player
+        player.draw(g2d);
 
         Toolkit.getDefaultToolkit().sync();
         g.dispose();
     }
 
-	@Override
-	public void actionPerformed(ActionEvent e) 
+	public void cycle()
 	{
-		if(player == null)
-			return;
+		//Update camera
+		Game.getCamera().update(Game.DELAY_MILLISECONDS, player.getTransform().getX());
 		
-		Game.getCamera().update(Game.UPDATE_INTERVAL, player.getTransform().getX());
-		for(GameObject obj : objects)
-			obj.Update(Game.UPDATE_INTERVAL);
+		//Update objects
+		for(int i = 0; i < objects.size();)
+		{
+			GameObject obj = objects.get(i);
+			
+			obj.Update(Game.DELAY_MILLISECONDS);
+			if(obj.isDead())
+				objects.remove(i);
+			else
+				i++;
+		}
 		
-		for(GameObject platform : platforms)
-			platform.Update(Game.UPDATE_INTERVAL);
-		
-        repaint();
+		//Update player
+		player.Update(Game.DELAY_MILLISECONDS);
 	}
+    
+	@Override
+    public void run() 
+	{
+        long beforeTime, timeDiff, sleep;
+
+        beforeTime = System.currentTimeMillis();
+
+        while (true) 
+        {
+            cycle();
+            repaint();
+
+            timeDiff = System.currentTimeMillis() - beforeTime;
+            sleep = Game.DELAY - timeDiff;
+
+            if (sleep < 0)
+                sleep = 2;
+            try 
+            {
+                Thread.sleep(sleep);
+            } 
+            catch (InterruptedException e) 
+            {
+                System.out.println("interrupted");
+            }
+
+            beforeTime = System.currentTimeMillis();
+        }
+    }
 	
     private class TAdapter extends KeyAdapter 
     {

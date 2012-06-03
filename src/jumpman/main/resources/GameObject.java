@@ -76,11 +76,36 @@ public abstract class GameObject
 	}
 	
 	public abstract void Update(double delta);
+	public abstract boolean isDead();
 	
-	public final void Draw(Graphics2D g2d)
+	public void draw(Graphics2D g2d)
 	{
 		g2d.drawImage(sprite.getImage(), 
 				(int)transform.getX() - Game.getCamera().center(), 
-				(int)transform.getY(), null); 
+				(int)transform.getY(), null);
+		
+		//For debugging purposes
+		g2d.draw(transform.getRectangle());
+	}
+	
+	public final void drawReverse(Graphics2D g2d)
+	{
+		int x = (int)transform.getX() - Game.getCamera().center();
+		int y = (int)transform.getY();
+		
+		g2d.drawImage(sprite.getImage(), 
+				x, 
+				y, 
+				-transform.getWidth(), 
+				transform.getHeight(), 
+				null);
+			
+		//For debugging purposes
+		g2d.draw(transform.getRectangle(isReversed()));
+	}
+
+	protected boolean isReversed()
+	{
+		return false;
 	}
 }

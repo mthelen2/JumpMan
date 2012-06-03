@@ -11,7 +11,8 @@ public enum Sprite
 	 */
 	CAVE("new_cave_bg.jpg", 1600, 600),
 	GOO("robin.png", 50, 50),
-	GIRDER("girder.png", 100, 16);
+	GIRDER("girder.png", 100, 16),
+	BIRD("bird.gif", 50, 50);
 	
 	private final String resourceName;
 	public final String getResourceName(){return resourceName;}

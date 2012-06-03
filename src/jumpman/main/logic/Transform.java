@@ -82,7 +82,15 @@ public class Transform
 	
 	public synchronized Rectangle getRectangle()
 	{
-		return new Rectangle((int)position.getX(), (int)position.getY(), width, height);
+		return getRectangle(false);
+	}
+	
+	public synchronized Rectangle getRectangle(boolean reversed)
+	{
+		return new Rectangle((int)position.getX() - (Game.getCamera().center() + (reversed ? width : 0)), 
+				(int)position.getY(), 
+				width, 
+				height);
 	}
 	
 	public Transform(double xPos, double yPos, double xVelocity, double yVelocity, int width, int height)

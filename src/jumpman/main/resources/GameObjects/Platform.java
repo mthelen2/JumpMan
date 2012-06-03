@@ -9,6 +9,8 @@ public class Platform extends GameObject
 {
 	private final GooBall player;
 	
+	public boolean isDead() { return false; }
+	
 	public Platform(Transform transform, Sprite sprite, GooBall player)
 	{
 		super(transform, sprite);

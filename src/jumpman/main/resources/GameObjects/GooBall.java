@@ -42,6 +42,9 @@ public class GooBall extends GameObject implements PlayerController
 	private Transform prevTransform = null;
 	public Transform getPrevTransform(){ return prevTransform; }
 	
+	private boolean died = false;
+	public boolean isDead() { return died; }
+	
 	public GooBall(Transform transform, Sprite sprite)
 	{
 		super(transform, sprite);
@@ -121,8 +124,10 @@ public class GooBall extends GameObject implements PlayerController
 		{
 			if(transform.getX() < currentPlatform.getX() ||
 					transform.getX() > currentPlatform.getX() + currentPlatform.getWidth())
+			{
 				currentPlatform = null;
 				allowGravity = true;
+			}
 		}
 	}
 	
@@ -142,5 +147,10 @@ public class GooBall extends GameObject implements PlayerController
 				transform.setVelocity(transform.getVelocityX(), 0);
 				break;
 		}
+	}
+
+	public void death() 
+	{
+		//Game.restart();
 	}
 }
